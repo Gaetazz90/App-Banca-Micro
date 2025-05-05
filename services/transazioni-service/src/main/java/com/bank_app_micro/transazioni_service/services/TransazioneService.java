@@ -11,6 +11,8 @@ import com.bank_app_micro.transazioni_service.domain.exceptions.IllegalTransacti
 import com.bank_app_micro.transazioni_service.domain.exceptions.MyEntityNotFoundException;
 import com.bank_app_micro.transazioni_service.feign.ContoClient;
 import com.bank_app_micro.transazioni_service.feign.UtenteClient;
+import com.bank_app_micro.transazioni_service.kafka.producers.TransactionConfirmation;
+import com.bank_app_micro.transazioni_service.kafka.producers.TransactionProducer;
 import com.bank_app_micro.transazioni_service.repositories.TransazioneRepository;
 import feign.FeignException;
 import jakarta.transaction.Transactional;
@@ -30,6 +32,9 @@ public class TransazioneService {
     private UtenteClient utenteClient;
     @Autowired
     private ContoClient contoClient;
+    @Autowired
+    private TransactionProducer transactionProducer;
+
 
     public List<Transazione> getAll(){
         return transazioneRepository.findAll();
@@ -116,6 +121,19 @@ public class TransazioneService {
                 .build();
         transazioneRepository.save(transazione);
 
+        //Creazione notifica
+        TransactionConfirmation notificaTransazione = TransactionConfirmation.builder()
+                .transazioneId(transazione.getId())
+                .utenteId(transazione.getUtenteId())
+                .timestamp(LocalDateTime.now())
+                .build();
+        //Invio notifica
+        try {
+            transactionProducer.inviaNotificaTransazione(notificaTransazione);
+        } catch (Exception ex) {
+            throw new RuntimeException("Errore durante l'invio del messaggio a Kafka: " + ex.getMessage());
+        }
+
         return EntityIdResponse.builder().id(transazione.getId()).build();
 
     }
@@ -173,6 +191,19 @@ public class TransazioneService {
                 .contoDestinatario(request.contoDestinatarioId())
                 .build();
         transazioneRepository.save(transazione);
+
+        //Creazione notifica
+        TransactionConfirmation notificaTransazione = TransactionConfirmation.builder()
+                .transazioneId(transazione.getId())
+                .utenteId(transazione.getUtenteId())
+                .timestamp(LocalDateTime.now())
+                .build();
+        //Invio notifica
+        try {
+            transactionProducer.inviaNotificaTransazione(notificaTransazione);
+        } catch (Exception ex) {
+            throw new RuntimeException("Errore durante l'invio del messaggio a Kafka: " + ex.getMessage());
+        }
 
         return EntityIdResponse.builder().id(transazione.getId()).build();
 
@@ -235,8 +266,21 @@ public class TransazioneService {
                 .build();
         transazioneRepository.save(transazione);
 
+        //Creazione notifica
+        TransactionConfirmation notificaTransazione = TransactionConfirmation.builder()
+                .transazioneId(transazione.getId())
+                .utenteId(transazione.getUtenteId())
+                .timestamp(LocalDateTime.now())
+                .build();
+        //Invio notifica
+        try {
+            transactionProducer.inviaNotificaTransazione(notificaTransazione);
+        } catch (Exception ex) {
+            throw new RuntimeException("Errore durante l'invio del messaggio a Kafka: " + ex.getMessage());
+        }
+
         return EntityIdResponse.builder().id(transazione.getId()).build();
 
     }
-    
+
 }

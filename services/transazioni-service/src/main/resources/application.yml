@@ -15,6 +15,17 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      group-id: transazioni-group
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: >
+          transactionConfirmation:com.bank_app_micro.transazioni_service.kafka.producers.TransactionConfirmation
+
+
 server:
   port: 8072
 

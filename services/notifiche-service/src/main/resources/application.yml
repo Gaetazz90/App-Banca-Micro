@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: notifiche-service
+  config:
+    import: optional:configserver:http://localhost:8888
+  data:
+    mongodb:
+      username: admin
+      password: password
+      host: localhost
+      port: 27117
+      database: notifiche
+      authentication-database: admin
+
+  kafka:
+    consumer:
+      bootstrap-server: localhost:9092
+      group-id: transazioni-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.type.mapping: >
+          transactionConfirmation:com.bank_app_micro.notifiche_service.kafka.consumers.TransactionConfirmation
+
+  mail:
+    host: localhost
+    port: 1080
+    username: admin
+    password: password
+    properties:
+      mail:
+        smtp:
+          trust: "*"
+        auth: true
+        starttls:
+          enabled: true
+        connectiontimeout: 5000
+        timeout: 3000
